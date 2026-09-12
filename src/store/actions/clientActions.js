@@ -33,18 +33,56 @@ export const loginUser = ({ email, password, rememberMe }) => async (dispatch) =
   dispatch(setUser(user))
   setAuthToken(token)
 
-  try {
-    if (rememberMe && token) {
-      localStorage.setItem(TOKEN_STORAGE_KEY, token)
-    } else {
-      // Remember Me secili degilse eski token da temizlenir
-      localStorage.removeItem(TOKEN_STORAGE_KEY)
-    }
-  } catch {
-    // localStorage erisilemiyorsa (private mode vb.) login akisi bozulmasin
-  }
+  // Remember Me secili degilse eski token da temizlenir
+  writeStoredToken(rememberMe && token ? token : null)
 
   return user
+}
+
+function readStoredToken() {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function writeStoredToken(token) {
+  try {
+    if (token) localStorage.setItem(TOKEN_STORAGE_KEY, token)
+    else localStorage.removeItem(TOKEN_STORAGE_KEY)
+  } catch {
+    // localStorage erisilemiyorsa akis bozulmasin
+  }
+}
+
+// Thunk: GET /verify ile token dogrulama (auto-login)
+// Gercek response shape: { name, email, role_id, token }  -> token YENILENMIS gelir
+// localStorage'da token yoksa hic istek atilmaz.
+// Basarisizlikta sessizce temizlenir; kullaniciya zorunlu toast gosterilmez.
+export const verifyToken = () => async (dispatch) => {
+  const storedToken = readStoredToken()
+  if (!storedToken) return null
+
+  setAuthToken(storedToken)
+
+  try {
+    const response = await axiosInstance.get('/verify')
+    const { token, ...user } = response.data ?? {}
+
+    dispatch(setUser(user))
+
+    const nextToken = token || storedToken
+    setAuthToken(nextToken)
+    writeStoredToken(nextToken)
+
+    return user
+  } catch {
+    dispatch(setUser({}))
+    setAuthToken(null)
+    writeStoredToken(null)
+    return null
+  }
 }
 
 // Thunk: roles Redux'ta zaten doluysa yeniden istek atmaz.

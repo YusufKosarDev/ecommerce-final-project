@@ -12,8 +12,9 @@ const axiosInstance = axios.create({
   },
 })
 
-// Mevcut session icin Authorization header'ini ayarlar/kaldirir.
-// T11'deki verify/auto-login mantigi bu ticket kapsaminda DEGIL.
+// Authorization header'ini ayarlar/kaldirir.
+// ONEMLI: Backend token'i ham haliyle bekliyor. "Bearer " prefix'i EKLENMEZ;
+// Bearer ile gonderildiginde GET /verify 401 "Not verified" donuyor.
 export function setAuthToken(token) {
   if (token) {
     axiosInstance.defaults.headers.common.Authorization = token
