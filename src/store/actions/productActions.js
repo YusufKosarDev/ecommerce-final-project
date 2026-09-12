@@ -79,8 +79,9 @@ export const fetchCategories = () => (dispatch, getState) => {
 // Backend'in kabul ettigi sort degerleri. Gecersiz deger gonderilirse API hata donuyor.
 export const VALID_SORT_VALUES = ['price:asc', 'price:desc', 'rating:asc', 'rating:desc']
 
-// Bos/undefined degerler URL'ye eklenmez; category + filter + sort birlikte gonderilir.
-export function buildProductQueryParams({ category, filter, sort } = {}) {
+// Bos/undefined degerler URL'ye eklenmez;
+// category + filter + sort + limit + offset birlikte gonderilir.
+export function buildProductQueryParams({ category, filter, sort, limit, offset } = {}) {
   const params = {}
 
   if (category !== undefined && category !== null && String(category).trim() !== '') {
@@ -92,6 +93,12 @@ export function buildProductQueryParams({ category, filter, sort } = {}) {
 
   const trimmedSort = String(sort ?? '').trim()
   if (trimmedSort && VALID_SORT_VALUES.includes(trimmedSort)) params.sort = trimmedSort
+
+  const numericLimit = Number(limit)
+  if (Number.isFinite(numericLimit) && numericLimit > 0) params.limit = numericLimit
+
+  const numericOffset = Number(offset)
+  if (Number.isFinite(numericOffset) && numericOffset >= 0) params.offset = numericOffset
 
   return params
 }

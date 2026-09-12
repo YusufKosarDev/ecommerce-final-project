@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { ChevronRight, LayoutGrid, List, LoaderCircle } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
+import Pagination from '../components/Pagination'
 import ShopCategoryCard from '../components/ShopCategoryCard'
 import { SORT_OPTIONS } from '../data/shopData'
 import { getApiErrorMessage } from '../api/axiosInstance'
-import { fetchCategories, fetchProducts, setFilter } from '../store/actions/productActions'
+import { fetchCategories, fetchProducts, setFilter, setOffset } from '../store/actions/productActions'
 import { buildCategoryPath, getGenderLabel, getTopCategories } from '../utils/categories'
 import { toProductCardProps } from '../utils/products'
 
@@ -16,6 +17,8 @@ function ShopPage() {
   const productList = useSelector((state) => state.product.productList)
   const total = useSelector((state) => state.product.total)
   const fetchState = useSelector((state) => state.product.fetchState)
+  const limit = useSelector((state) => state.product.limit)
+  const offset = useSelector((state) => state.product.offset)
 
   // Filter Redux'ta (T09 reducer alani), sort ise sadece bu sayfaya ait -> local state
   const filter = useSelector((state) => state.product.filter)
@@ -23,6 +26,7 @@ function ShopPage() {
   const { categoryId } = useParams()
 
   const [sort, setSort] = useState('')
+  const previousQueryRef = useRef({ categoryId, filter, sort: '' })
   const [filterInput, setFilterInput] = useState(filter)
 
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(categories.length === 0)
@@ -59,13 +63,45 @@ function ShopPage() {
     return () => clearTimeout(timeoutId)
   }, [filterInput, filter, dispatch])
 
-  // TEK fetch noktasi: category / filter / sort birlikte gonderilir.
-  // Uclusunden biri degistiginde tam olarak bir istek atilir.
+  // TEK fetch noktasi: category / filter / sort / limit / offset birlikte gonderilir.
+  // category, filter veya sort degisirse once offset 0'a cekilir ve fetch atlanir;
+  // setOffset bu efekti tekrar tetikledigi icin kullanici basina tam 1 istek atilir.
   useEffect(() => {
-    dispatch(fetchProducts({ category: categoryId, filter, sort })).catch(() => {
-      // Hata durumu fetchState === 'FAILED' uzerinden gosteriliyor
-    })
-  }, [dispatch, categoryId, filter, sort])
+    const previous = previousQueryRef.current
+    const queryChanged =
+      previous.categoryId !== categoryId ||
+      previous.filter !== filter ||
+      previous.sort !== sort
+
+    previousQueryRef.current = { categoryId, filter, sort }
+
+    if (queryChanged && offset !== 0) {
+      dispatch(setOffset(0))
+      return
+    }
+
+    dispatch(fetchProducts({ category: categoryId, filter, sort, limit, offset })).catch(
+      () => {
+        // Hata durumu fetchState === 'FAILED' uzerinden gosteriliyor
+      },
+    )
+  }, [dispatch, categoryId, filter, sort, limit, offset])
+
+  // Guvenlik agi: mevcut offset yeni total'i asiyorsa ilk sayfaya don
+  useEffect(() => {
+    if (total > 0 && offset >= total) {
+      dispatch(setOffset(0))
+    }
+  }, [total, offset, dispatch])
+
+  // Sayfa hesaplari: currentPage = floor(offset / limit) + 1, totalPages = ceil(total / limit)
+  const currentPage = Math.floor(offset / limit) + 1
+  const totalPages = Math.ceil(total / limit)
+
+  const handlePageChange = (page) => {
+    const safePage = Math.min(Math.max(page, 1), Math.max(totalPages, 1))
+    dispatch(setOffset((safePage - 1) * limit))
+  }
 
   // Rating'e gore en yuksek 5 kategori (Redux state'i degistirmeden)
   const topCategories = getTopCategories(categories, 5)
@@ -241,6 +277,14 @@ function ShopPage() {
                 </div>
               ))}
             </div>
+          )}
+
+          {fetchState !== 'FAILED' && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           )}
         </div>
       </section>
