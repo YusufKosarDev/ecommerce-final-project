@@ -1,5 +1,11 @@
 import axiosInstance, { setAuthToken } from '../../api/axiosInstance'
-import { SET_LANGUAGE, SET_ROLES, SET_THEME, SET_USER } from './actionTypes'
+import {
+  SET_ADDRESS_LIST,
+  SET_LANGUAGE,
+  SET_ROLES,
+  SET_THEME,
+  SET_USER,
+} from './actionTypes'
 
 export const TOKEN_STORAGE_KEY = 'token'
 
@@ -98,4 +104,41 @@ export const fetchRoles = () => async (dispatch, getState) => {
   const roles = Array.isArray(response.data) ? response.data : []
   dispatch(setRoles(roles))
   return roles
+}
+
+export const setAddressList = (addressList) => ({
+  type: SET_ADDRESS_LIST,
+  payload: addressList,
+})
+
+// ---- Address CRUD (T20) ----
+// Backend shape'leri:
+//   GET    /user/address        -> [{ id, user_id, title, name, surname, phone,
+//                                     city, district, neighborhood, address }]
+//   POST   /user/address        -> { "0": {olusturulan adres} }
+//   PUT    /user/address        -> { "0": {guncellenen adres} }  (id govdede)
+//   DELETE /user/address/:id    -> "Address record deleted!"
+// POST/PUT yanitlari {"0": ...} sarmalayicisiyla geldigi icin CRUD sonrasi
+// listeyi yeniden cekiyoruz; boylece Redux her zaman sunucuyla birebir ayni olur.
+
+export const fetchAddresses = () => async (dispatch) => {
+  const response = await axiosInstance.get('/user/address')
+  const addressList = Array.isArray(response.data) ? response.data : []
+  dispatch(setAddressList(addressList))
+  return addressList
+}
+
+export const createAddress = (address) => async (dispatch) => {
+  await axiosInstance.post('/user/address', address)
+  return dispatch(fetchAddresses())
+}
+
+export const updateAddress = (address) => async (dispatch) => {
+  await axiosInstance.put('/user/address', address)
+  return dispatch(fetchAddresses())
+}
+
+export const deleteAddress = (addressId) => async (dispatch) => {
+  await axiosInstance.delete(`/user/address/${addressId}`)
+  return dispatch(fetchAddresses())
 }

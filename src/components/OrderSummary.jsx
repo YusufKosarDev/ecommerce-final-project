@@ -1,3 +1,4 @@
+import { useHistory } from 'react-router-dom'
 import { formatPrice } from '../utils/products'
 import {
   DISCOUNT_THRESHOLD,
@@ -29,6 +30,8 @@ function SummaryRow({ label, value, hint, testId, emphasis = false, negative = f
 }
 
 function OrderSummary({ cart }) {
+  const history = useHistory()
+
   const { productsTotal, shipping, discount, grandTotal, isFreeShipping, hasDiscount } =
     calculateOrderSummary(cart)
 
@@ -70,11 +73,12 @@ function OrderSummary({ cart }) {
 
       <SummaryRow label="Grand Total" value={grandTotal} testId="summary-grand-total" emphasis />
 
-      {/* T20'de checkout akisi baglanacak; simdilik hicbir is mantigi calistirmiyor. */}
+      {/* Checkout adim 1: adres. Odeme adimi T21 kapsaminda. */}
       <button
         type="button"
         data-testid="create-order"
         disabled={!hasSelection}
+        onClick={() => history.push('/checkout/address')}
         className="w-full rounded bg-primary px-8 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
         Create Order
