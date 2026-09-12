@@ -1,4 +1,5 @@
 import { Route, Switch } from 'react-router-dom'
+import ContactPage from '../pages/ContactPage'
 import HomePage from '../pages/HomePage'
 import ProductDetailPage from '../pages/ProductDetailPage'
 import ShopPage from '../pages/ShopPage'
@@ -15,6 +16,9 @@ function PageContent() {
         </Route>
         <Route exact path="/shop/:gender/:categoryName/:categoryId/:productNameSlug/:productId">
           <ProductDetailPage />
+        </Route>
+        <Route exact path="/contact">
+          <ContactPage />
         </Route>
       </Switch>
     </main>
