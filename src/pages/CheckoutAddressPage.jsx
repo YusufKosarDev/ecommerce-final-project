@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 import { ChevronLeft, LoaderCircle, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import FormField from '../components/FormField'
@@ -32,6 +32,7 @@ const EMPTY_FORM = {
 
 function CheckoutAddressPage() {
   const dispatch = useDispatch()
+  const history = useHistory()
   const addressList = useSelector((state) => state.client.addressList)
   const selectedAddress = useSelector((state) => state.shoppingCart.address)
 
@@ -376,11 +377,11 @@ function CheckoutAddressPage() {
                 Back to Cart
               </Link>
 
-              {/* Kredi karti adimi T21 kapsaminda; buton simdilik islevsiz. */}
               <button
                 type="button"
                 data-testid="continue-to-payment"
                 disabled={!hasSelection}
+                onClick={() => history.push('/checkout/payment')}
                 className="rounded bg-primary px-8 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Continue

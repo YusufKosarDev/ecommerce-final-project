@@ -1,6 +1,7 @@
 import axiosInstance, { setAuthToken } from '../../api/axiosInstance'
 import {
   SET_ADDRESS_LIST,
+  SET_CREDIT_CARDS,
   SET_LANGUAGE,
   SET_ROLES,
   SET_THEME,
@@ -141,4 +142,41 @@ export const updateAddress = (address) => async (dispatch) => {
 export const deleteAddress = (addressId) => async (dispatch) => {
   await axiosInstance.delete(`/user/address/${addressId}`)
   return dispatch(fetchAddresses())
+}
+
+export const setCreditCards = (creditCards) => ({
+  type: SET_CREDIT_CARDS,
+  payload: creditCards,
+})
+
+// ---- Credit card CRUD (T21) ----
+// Backend shape'leri:
+//   GET    /user/card       -> [{ id, user_id, card_no, expire_month, expire_year, name_on_card }]
+//   POST   /user/card       -> { "0": {olusturulan kart} }
+//   PUT    /user/card       -> { "0": {guncellenen kart} }  (id govdede)
+//   DELETE /user/card/:id   -> "Credit card record deleted!"
+// NOT: card_ccv alani YOK; POST'a eklenirse API 502 donuyor.
+// Address CRUD'daki gibi, {"0": ...} sarmalayicisina guvenmek yerine
+// CRUD sonrasi liste yeniden cekilir.
+
+export const fetchCreditCards = () => async (dispatch) => {
+  const response = await axiosInstance.get('/user/card')
+  const creditCards = Array.isArray(response.data) ? response.data : []
+  dispatch(setCreditCards(creditCards))
+  return creditCards
+}
+
+export const createCreditCard = (card) => async (dispatch) => {
+  await axiosInstance.post('/user/card', card)
+  return dispatch(fetchCreditCards())
+}
+
+export const updateCreditCard = (card) => async (dispatch) => {
+  await axiosInstance.put('/user/card', card)
+  return dispatch(fetchCreditCards())
+}
+
+export const deleteCreditCard = (cardId) => async (dispatch) => {
+  await axiosInstance.delete(`/user/card/${cardId}`)
+  return dispatch(fetchCreditCards())
 }

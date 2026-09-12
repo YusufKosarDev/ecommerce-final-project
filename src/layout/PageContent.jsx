@@ -2,6 +2,7 @@ import { Route, Switch } from 'react-router-dom'
 import AboutPage from '../pages/AboutPage'
 import ProtectedRoute from '../components/ProtectedRoute'
 import CheckoutAddressPage from '../pages/CheckoutAddressPage'
+import CheckoutPaymentPage from '../pages/CheckoutPaymentPage'
 import ContactPage from '../pages/ContactPage'
 import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
@@ -29,6 +30,9 @@ function PageContent() {
         </Route>
         <ProtectedRoute exact path="/checkout/address">
           <CheckoutAddressPage />
+        </ProtectedRoute>
+        <ProtectedRoute exact path="/checkout/payment">
+          <CheckoutPaymentPage />
         </ProtectedRoute>
         <Route exact path="/cart">
           <ShoppingCartPage />

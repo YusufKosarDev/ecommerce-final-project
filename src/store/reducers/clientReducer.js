@@ -1,5 +1,6 @@
 import {
   SET_ADDRESS_LIST,
+  SET_CREDIT_CARDS,
   SET_LANGUAGE,
   SET_ROLES,
   SET_THEME,
@@ -21,6 +22,8 @@ function clientReducer(state = initialState, action) {
       return { ...state, user: action.payload }
     case SET_ADDRESS_LIST:
       return { ...state, addressList: action.payload }
+    case SET_CREDIT_CARDS:
+      return { ...state, creditCards: action.payload }
     case SET_ROLES:
       return { ...state, roles: action.payload }
     case SET_THEME:
