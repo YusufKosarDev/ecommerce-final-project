@@ -6,6 +6,7 @@ import Footer from './layout/Footer'
 import Header from './layout/Header'
 import PageContent from './layout/PageContent'
 import { verifyToken } from './store/actions/clientActions'
+import { fetchCategories } from './store/actions/productActions'
 
 function App() {
   const dispatch = useDispatch()
@@ -15,6 +16,14 @@ function App() {
   // Yonlendirme yapilmaz; kullanici actigi route'ta kalir.
   useEffect(() => {
     dispatch(verifyToken())
+  }, [dispatch])
+
+  // Kategoriler Header dropdown dahil tum sayfalarda kullanildigi icin acilista bir kez yuklenir.
+  // Thunk tekrar istek atmaz; ShopPage ayni thunk i dispatch etse bile tek istek gider.
+  useEffect(() => {
+    dispatch(fetchCategories()).catch(() => {
+      // Hata gosterimi ilgili sayfada yapilir
+    })
   }, [dispatch])
 
   return (

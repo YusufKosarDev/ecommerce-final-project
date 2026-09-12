@@ -1,13 +1,5 @@
 const img = (seed, w, h) => `https://picsum.photos/seed/${seed}/${w}/${h}`
 
-export const SHOP_CATEGORIES = [
-  { id: 1, title: 'CLOTHS', itemCount: 5, image: img('bandage-shop-cat-cloths', 500, 400) },
-  { id: 2, title: 'SHOES', itemCount: 5, image: img('bandage-shop-cat-shoes', 500, 400) },
-  { id: 3, title: 'ACCESSORIES', itemCount: 5, image: img('bandage-shop-cat-acc', 500, 400) },
-  { id: 4, title: 'BAGS', itemCount: 5, image: img('bandage-shop-cat-bags', 500, 400) },
-  { id: 5, title: 'KIDS', itemCount: 5, image: img('bandage-shop-cat-kids', 500, 400) },
-]
-
 const PRODUCT_COLORS = ['bg-primary', 'bg-[#23856D]', 'bg-[#E77C40]', 'bg-dark']
 
 // Geçici route metadata - T16'da gerçek API verisiyle değiştirilecek

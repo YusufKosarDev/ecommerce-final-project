@@ -14,10 +14,14 @@ import {
 } from 'lucide-react'
 import { Facebook, Instagram, Twitter, Youtube } from '../components/icons/SocialIcons'
 import UserAvatar from '../components/UserAvatar'
+import { buildCategoryPath, groupCategoriesByGender } from '../utils/categories'
 import { NAV_LINKS } from '../data/homeData'
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
+
+  const categories = useSelector((state) => state.product.categories)
 
   const user = useSelector((state) => state.client.user)
   const isLoggedIn = Boolean(user && user.email)
@@ -60,17 +64,65 @@ function Header() {
           {/* Desktop navigation */}
           <nav className="hidden md:flex">
             <ul className="flex items-center gap-3 whitespace-nowrap text-sm font-bold text-muted lg:gap-5">
-              {NAV_LINKS.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    to={link.path}
-                    className="flex items-center gap-1 transition-colors hover:text-dark"
-                  >
-                    {link.label}
-                    {link.label === 'Shop' && <ChevronDown size={14} />}
-                  </Link>
-                </li>
-              ))}
+              {NAV_LINKS.map((link) =>
+                link.label === 'Shop' ? (
+                  <li key={link.label} className="relative">
+                    <div className="flex items-center gap-1">
+                      <Link to={link.path} className="transition-colors hover:text-dark">
+                        {link.label}
+                      </Link>
+                      <button
+                        type="button"
+                        aria-label="Toggle categories"
+                        aria-expanded={isCategoryMenuOpen}
+                        onClick={() => setIsCategoryMenuOpen((open) => !open)}
+                        className="flex items-center transition-colors hover:text-dark"
+                      >
+                        <ChevronDown size={14} />
+                      </button>
+                    </div>
+
+                    {isCategoryMenuOpen && (
+                      <div
+                        data-testid="category-dropdown"
+                        className="absolute left-0 top-full z-20 mt-3 flex gap-8 border border-gray-200 bg-white px-6 py-5 shadow-md"
+                      >
+                        {categories.length === 0 ? (
+                          <p className="text-sm text-muted">Kategoriler yukleniyor...</p>
+                        ) : (
+                          groupCategoriesByGender(categories).map((group) => (
+                            <div key={group.gender} className="flex flex-col gap-3">
+                              <p className="text-sm font-bold text-dark">{group.label}</p>
+                              <ul className="flex flex-col gap-2">
+                                {group.items.map((category) => (
+                                  <li key={category.id}>
+                                    <Link
+                                      to={buildCategoryPath(category)}
+                                      onClick={() => setIsCategoryMenuOpen(false)}
+                                      className="text-sm font-normal text-muted transition-colors hover:text-dark"
+                                    >
+                                      {category.title}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </li>
+                ) : (
+                  <li key={link.label}>
+                    <Link
+                      to={link.path}
+                      className="flex items-center gap-1 transition-colors hover:text-dark"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ),
+              )}
             </ul>
           </nav>
 
