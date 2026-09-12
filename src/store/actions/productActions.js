@@ -76,14 +76,35 @@ export const fetchCategories = () => (dispatch, getState) => {
   return categoriesRequest
 }
 
-// Thunk: GET /products (T13 - query parameter YOK)
+// Backend'in kabul ettigi sort degerleri. Gecersiz deger gonderilirse API hata donuyor.
+export const VALID_SORT_VALUES = ['price:asc', 'price:desc', 'rating:asc', 'rating:desc']
+
+// Bos/undefined degerler URL'ye eklenmez; category + filter + sort birlikte gonderilir.
+export function buildProductQueryParams({ category, filter, sort } = {}) {
+  const params = {}
+
+  if (category !== undefined && category !== null && String(category).trim() !== '') {
+    params.category = String(category).trim()
+  }
+
+  const trimmedFilter = String(filter ?? '').trim()
+  if (trimmedFilter) params.filter = trimmedFilter
+
+  const trimmedSort = String(sort ?? '').trim()
+  if (trimmedSort && VALID_SORT_VALUES.includes(trimmedSort)) params.sort = trimmedSort
+
+  return params
+}
+
+// Thunk: GET /products (T14 - category / filter / sort query parametreleri)
 // fetchState akisi: FETCHING -> FETCHED | FAILED
 // Hata cagirana iletilir ki component gerekirse detay gosterebilsin.
-export const fetchProducts = () => async (dispatch) => {
+export const fetchProducts = (options = {}) => async (dispatch) => {
   dispatch(setFetchState(FETCH_STATES.FETCHING))
 
   try {
-    const response = await axiosInstance.get('/products')
+    const params = buildProductQueryParams(options)
+    const response = await axiosInstance.get('/products', { params })
     const data = response.data ?? {}
 
     dispatch(setProductList(Array.isArray(data.products) ? data.products : []))

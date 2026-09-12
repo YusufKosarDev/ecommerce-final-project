@@ -6,7 +6,7 @@ import ProductCard from '../components/ProductCard'
 import ShopCategoryCard from '../components/ShopCategoryCard'
 import { SORT_OPTIONS } from '../data/shopData'
 import { getApiErrorMessage } from '../api/axiosInstance'
-import { fetchCategories, fetchProducts } from '../store/actions/productActions'
+import { fetchCategories, fetchProducts, setFilter } from '../store/actions/productActions'
 import { buildCategoryPath, getGenderLabel, getTopCategories } from '../utils/categories'
 import { toProductCardProps } from '../utils/products'
 
@@ -17,8 +17,13 @@ function ShopPage() {
   const total = useSelector((state) => state.product.total)
   const fetchState = useSelector((state) => state.product.fetchState)
 
-  // T14'te products?category=... icin kullanilacak; simdilik sadece okunuyor
+  // Filter Redux'ta (T09 reducer alani), sort ise sadece bu sayfaya ait -> local state
+  const filter = useSelector((state) => state.product.filter)
+
   const { categoryId } = useParams()
+
+  const [sort, setSort] = useState('')
+  const [filterInput, setFilterInput] = useState(filter)
 
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(categories.length === 0)
   const [categoriesError, setCategoriesError] = useState('')
@@ -42,16 +47,25 @@ function ShopPage() {
     }
   }, [dispatch])
 
-  // Urunler: T13 kapsaminda query parameter YOK, duz GET /products
-  // Zaten yuklenmisse tekrar istek atilmaz.
+  // Debounce: input degeri belli bir sure degismezse Redux filter'a yazilir.
+  // Boylece her tusa basista istek atilmaz.
   useEffect(() => {
-    if (fetchState === 'FETCHED' && productList.length > 0) return
-    dispatch(fetchProducts()).catch(() => {
+    if (filterInput === filter) return undefined
+
+    const timeoutId = setTimeout(() => {
+      dispatch(setFilter(filterInput))
+    }, 400)
+
+    return () => clearTimeout(timeoutId)
+  }, [filterInput, filter, dispatch])
+
+  // TEK fetch noktasi: category / filter / sort birlikte gonderilir.
+  // Uclusunden biri degistiginde tam olarak bir istek atilir.
+  useEffect(() => {
+    dispatch(fetchProducts({ category: categoryId, filter, sort })).catch(() => {
       // Hata durumu fetchState === 'FAILED' uzerinden gosteriliyor
     })
-    // fetchState/productList bilerek bagimlilik disinda: sadece mount'ta calisir
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch])
+  }, [dispatch, categoryId, filter, sort])
 
   // Rating'e gore en yuksek 5 kategori (Redux state'i degistirmeden)
   const topCategories = getTopCategories(categories, 5)
@@ -150,21 +164,35 @@ function ShopPage() {
             </button>
           </div>
 
-          <div className="flex w-full items-center gap-3 md:w-auto">
+          <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
+            <input
+              id="product-filter"
+              type="search"
+              aria-label="Filter products"
+              placeholder="Urun ara..."
+              value={filterInput}
+              onChange={(event) => setFilterInput(event.target.value)}
+              className="h-10 w-full border border-gray-200 bg-light px-4 text-sm text-dark outline-none focus:border-primary md:w-44"
+            />
+
             <select
+              id="product-sort"
               aria-label="Sort products"
-              defaultValue={SORT_OPTIONS[0]}
+              value={sort}
+              onChange={(event) => setSort(event.target.value)}
               className="h-10 w-full border border-gray-200 bg-light px-4 text-sm text-muted outline-none md:w-48"
             >
+              <option value="">Sort</option>
               {SORT_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
 
             <button
               type="button"
+              onClick={() => dispatch(setFilter(filterInput))}
               className="h-10 shrink-0 bg-primary px-6 text-sm font-bold text-white"
             >
               Filter

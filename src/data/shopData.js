@@ -21,9 +21,10 @@ export const SHOP_PRODUCTS = Array.from({ length: 12 }, (_, i) => ({
   ...ROUTE_META[i % ROUTE_META.length],
 }))
 
+// Degerler backend'in bekledigi formatta: <alan>:<yon>
 export const SORT_OPTIONS = [
-  'Popularity',
-  'Price: Low to High',
-  'Price: High to Low',
-  'Newest',
+  { value: 'price:asc', label: 'Price: Low to High' },
+  { value: 'price:desc', label: 'Price: High to Low' },
+  { value: 'rating:asc', label: 'Rating: Low to High' },
+  { value: 'rating:desc', label: 'Rating: High to Low' },
 ]
