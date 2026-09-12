@@ -2,6 +2,7 @@ import { Route, Switch } from 'react-router-dom'
 import AboutPage from '../pages/AboutPage'
 import ContactPage from '../pages/ContactPage'
 import HomePage from '../pages/HomePage'
+import LoginPage from '../pages/LoginPage'
 import ProductDetailPage from '../pages/ProductDetailPage'
 import ShopPage from '../pages/ShopPage'
 import SignupPage from '../pages/SignupPage'
@@ -25,6 +26,9 @@ function PageContent() {
         </Route>
         <Route exact path="/contact">
           <ContactPage />
+        </Route>
+        <Route exact path="/login">
+          <LoginPage />
         </Route>
         <Route exact path="/signup">
           <SignupPage />

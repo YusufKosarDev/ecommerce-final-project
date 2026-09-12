@@ -73,9 +73,11 @@ function Header() {
           <div className="hidden items-center gap-3 whitespace-nowrap text-sm font-bold text-primary md:flex lg:gap-4">
             <span className="flex items-center gap-2">
               <User size={16} />
-              {/* Login route T10'da eklenecek; simdilik sadece Register bagli */}
               <span className="hidden lg:inline">
-                Login /{' '}
+                <Link to="/login" className="hover:underline">
+                  Login
+                </Link>{' '}
+                /{' '}
                 <Link to="/signup" className="hover:underline">
                   Register
                 </Link>
