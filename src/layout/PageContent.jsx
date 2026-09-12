@@ -1,5 +1,6 @@
 import { Route, Switch } from 'react-router-dom'
 import HomePage from '../pages/HomePage'
+import ShopPage from '../pages/ShopPage'
 
 function PageContent() {
   return (
@@ -7,6 +8,9 @@ function PageContent() {
       <Switch>
         <Route exact path="/">
           <HomePage />
+        </Route>
+        <Route exact path="/shop">
+          <ShopPage />
         </Route>
       </Switch>
     </main>
