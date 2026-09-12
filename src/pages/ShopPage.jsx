@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import ShopCategoryCard from '../components/ShopCategoryCard'
 import { SHOP_CATEGORIES, SHOP_PRODUCTS, SORT_OPTIONS } from '../data/shopData'
+import { buildProductPath } from '../utils/slugify'
 
 function ShopPage() {
   return (
@@ -95,7 +96,7 @@ function ShopPage() {
           <div className="-mx-3 flex flex-wrap">
             {SHOP_PRODUCTS.map((product) => (
               <div key={product.id} className="w-full px-3 pb-8 md:w-1/2 lg:w-1/4">
-                <ProductCard {...product} />
+                <ProductCard {...product} to={buildProductPath(product)} />
               </div>
             ))}
           </div>

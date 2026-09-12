@@ -1,6 +1,8 @@
-function ProductCard({ image, title, department, oldPrice, newPrice, colors = [] }) {
-  return (
-    <article className="flex w-full flex-col bg-white">
+import { Link } from 'react-router-dom'
+
+function ProductCard({ image, title, department, oldPrice, newPrice, colors = [], to }) {
+  const content = (
+    <>
       <div className="w-full overflow-hidden">
         <img src={image} alt={title} className="h-80 w-full object-cover md:h-[400px]" />
       </div>
@@ -20,6 +22,18 @@ function ProductCard({ image, title, department, oldPrice, newPrice, colors = []
           ))}
         </div>
       </div>
+    </>
+  )
+
+  return (
+    <article className="flex w-full flex-col bg-white">
+      {to ? (
+        <Link to={to} className="flex w-full flex-col">
+          {content}
+        </Link>
+      ) : (
+        content
+      )}
     </article>
   )
 }
