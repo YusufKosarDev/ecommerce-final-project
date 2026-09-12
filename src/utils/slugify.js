@@ -24,7 +24,3 @@ export function slugify(value) {
     .replace(/^-+|-+$/g, '')
 }
 
-// /shop/:gender/:categoryName/:categoryId/:productNameSlug/:productId
-export function buildProductPath({ gender, categoryName, categoryId, title, id }) {
-  return `/shop/${slugify(gender)}/${slugify(categoryName)}/${categoryId}/${slugify(title)}/${id}`
-}

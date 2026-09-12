@@ -6,6 +6,7 @@ import {
   SET_FILTER,
   SET_LIMIT,
   SET_OFFSET,
+  SET_PRODUCT,
   SET_PRODUCT_LIST,
   SET_TOTAL,
 } from './actionTypes'
@@ -13,6 +14,11 @@ import {
 export const setCategories = (categories) => ({
   type: SET_CATEGORIES,
   payload: categories,
+})
+
+export const setProduct = (product) => ({
+  type: SET_PRODUCT,
+  payload: product,
 })
 
 export const setProductList = (productList) => ({
@@ -123,4 +129,15 @@ export const fetchProducts = (options = {}) => async (dispatch) => {
     dispatch(setFetchState(FETCH_STATES.FAILED))
     throw error
   }
+}
+
+// Thunk: GET /products/:productId (tek urun)
+// Sonuc product.product alanina yazilir.
+// Shop listesinin fetchState'i BILEREK degistirilmez; detay sayfasi kendi
+// loading/error state'ini yonetir (liste ile detay birbirini ezmesin).
+export const fetchProduct = (productId) => async (dispatch) => {
+  const response = await axiosInstance.get(`/products/${productId}`)
+  const product = response.data ?? {}
+  dispatch(setProduct(product))
+  return product
 }

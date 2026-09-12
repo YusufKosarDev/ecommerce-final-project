@@ -7,6 +7,7 @@ export const SET_LANGUAGE = 'client/SET_LANGUAGE'
 // Product
 export const SET_CATEGORIES = 'product/SET_CATEGORIES'
 export const SET_PRODUCT_LIST = 'product/SET_PRODUCT_LIST'
+export const SET_PRODUCT = 'product/SET_PRODUCT'
 export const SET_TOTAL = 'product/SET_TOTAL'
 export const SET_FETCH_STATE = 'product/SET_FETCH_STATE'
 export const SET_LIMIT = 'product/SET_LIMIT'

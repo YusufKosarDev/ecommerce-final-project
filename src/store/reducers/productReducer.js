@@ -5,6 +5,7 @@ import {
   SET_FILTER,
   SET_LIMIT,
   SET_OFFSET,
+  SET_PRODUCT,
   SET_PRODUCT_LIST,
   SET_TOTAL,
 } from '../actions/actionTypes'
@@ -17,12 +18,15 @@ const initialState = {
   offset: 0,
   filter: '',
   fetchState: FETCH_STATES.NOT_FETCHED,
+  product: {},
 }
 
 function productReducer(state = initialState, action) {
   switch (action.type) {
     case SET_CATEGORIES:
       return { ...state, categories: action.payload }
+    case SET_PRODUCT:
+      return { ...state, product: action.payload }
     case SET_PRODUCT_LIST:
       return { ...state, productList: action.payload }
     case SET_TOTAL:

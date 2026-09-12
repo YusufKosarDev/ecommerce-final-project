@@ -4,7 +4,11 @@ function ProductCard({ image, title, department, oldPrice, newPrice, colors = []
   const content = (
     <>
       <div className="w-full overflow-hidden">
-        <img src={image} alt={title} className="h-80 w-full object-cover md:h-[400px]" />
+        <img
+          src={image}
+          alt={title}
+          className="h-80 w-full object-cover transition-transform duration-300 hover:scale-105 md:h-[400px]"
+        />
       </div>
 
       <div className="flex flex-col items-center gap-3 px-3 py-6 text-center">
@@ -28,7 +32,11 @@ function ProductCard({ image, title, department, oldPrice, newPrice, colors = []
   )
 
   return (
-    <article className="flex w-full flex-col bg-white">
+    <article
+      className={`flex w-full flex-col bg-white transition-shadow ${
+        to ? 'cursor-pointer hover:shadow-lg' : ''
+      }`}
+    >
       {to ? (
         <Link to={to} className="flex w-full flex-col">
           {content}
