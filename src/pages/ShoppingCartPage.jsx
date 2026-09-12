@@ -7,6 +7,7 @@ import {
   removeCartItem,
   toggleCartItem,
 } from '../store/actions/shoppingCartActions'
+import OrderSummary from '../components/OrderSummary'
 import { formatPrice, getProductImage } from '../utils/products'
 
 const iconButton =
@@ -16,11 +17,6 @@ function ShoppingCartPage() {
   const dispatch = useDispatch()
   const cart = useSelector((state) => state.shoppingCart.cart)
 
-  // Yalnizca secili (checked) satirlarin toplami.
-  // Detayli Order Summary T19 kapsaminda.
-  const selectedTotal = cart
-    .filter((item) => item.checked)
-    .reduce((sum, item) => sum + Number(item.product?.price ?? 0) * item.count, 0)
 
   return (
     <section className="w-full bg-white">
@@ -42,8 +38,9 @@ function ShoppingCartPage() {
             </Link>
           </div>
         ) : (
-          <>
-            <ul className="flex flex-col gap-4" data-testid="cart-page-list">
+          // Mobile: liste ustte, ozet altta. Desktop: liste solda, ozet sagda.
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
+            <ul className="flex flex-1 flex-col gap-4" data-testid="cart-page-list">
               {cart.map((item) => (
                 <li
                   key={item.product.id}
@@ -128,13 +125,8 @@ function ShoppingCartPage() {
               ))}
             </ul>
 
-            <div className="flex flex-col items-stretch gap-3 border-t border-gray-200 pt-6 md:flex-row md:items-center md:justify-end md:gap-6">
-              <p className="text-sm font-bold text-muted">
-                Selected total:{' '}
-                <span className="text-lg text-dark" data-testid="selected-total">
-                  {formatPrice(selectedTotal)}
-                </span>
-              </p>
+            <div className="flex w-full flex-col gap-4 md:w-auto">
+              <OrderSummary cart={cart} />
 
               <Link
                 to="/shop"
@@ -143,7 +135,7 @@ function ShoppingCartPage() {
                 Continue Shopping
               </Link>
             </div>
-          </>
+          </div>
         )}
       </div>
     </section>
