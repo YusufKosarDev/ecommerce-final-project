@@ -47,14 +47,14 @@ function Header() {
 
       {/* Main bar */}
       <div className="w-full bg-white">
-        <div className="mx-auto flex w-full max-w-screen-xl items-center justify-between px-4 py-5 md:py-4">
+        <div className="mx-auto flex w-full max-w-screen-xl items-center justify-between gap-4 px-4 py-5 md:py-4">
           <Link to="/" className="text-2xl font-bold text-dark">
             Bandage
           </Link>
 
           {/* Desktop navigation */}
           <nav className="hidden md:flex">
-            <ul className="flex items-center gap-5 text-sm font-bold text-muted">
+            <ul className="flex items-center gap-3 whitespace-nowrap text-sm font-bold text-muted lg:gap-5">
               {NAV_LINKS.map((link) => (
                 <li key={link.label}>
                   <Link
@@ -70,10 +70,10 @@ function Header() {
           </nav>
 
           {/* Desktop actions */}
-          <div className="hidden items-center gap-4 text-sm font-bold text-primary md:flex">
+          <div className="hidden items-center gap-3 whitespace-nowrap text-sm font-bold text-primary md:flex lg:gap-4">
             <span className="flex items-center gap-2">
               <User size={16} />
-              Login / Register
+              <span className="hidden lg:inline">Login / Register</span>
             </span>
             <button type="button" aria-label="Search">
               <Search size={18} />
