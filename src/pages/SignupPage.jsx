@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useHistory } from 'react-router-dom'
+import { LoaderCircle } from 'lucide-react'
+import { toast } from 'react-toastify'
 import FormField from '../components/FormField'
-import { CUSTOMER_ROLE_ID, MOCK_ROLES, STORE_ROLE_ID } from '../data/signupData'
+import axiosInstance, { getApiErrorMessage } from '../api/axiosInstance'
+import { getDefaultRoleId, isStoreRoleId } from '../utils/roles'
 import {
   EMAIL_PATTERN,
   PASSWORD_RULES,
@@ -11,18 +15,25 @@ import {
 } from '../utils/validators'
 
 const inputClass =
-  'w-full rounded border border-gray-300 bg-white px-4 py-3 text-sm text-dark outline-none focus:border-primary'
+  'w-full rounded border border-gray-300 bg-white px-4 py-3 text-sm text-dark outline-none focus:border-primary disabled:cursor-not-allowed disabled:bg-gray-100'
+
+const ACTIVATION_MESSAGE =
+  'You need to click link in email to activate your account!'
 
 function SignupPage() {
-  // API cagrisi T08 ikinci adiminda eklenecek; simdilik sadece validation sonucu gosteriliyor
-  const [validatedSummary, setValidatedSummary] = useState(null)
+  const history = useHistory()
+
+  const [roles, setRoles] = useState([])
+  const [isRolesLoading, setIsRolesLoading] = useState(true)
+  const [rolesError, setRolesError] = useState('')
 
   const {
     register,
     handleSubmit,
     watch,
     getValues,
-    formState: { errors, isSubmitSuccessful },
+    setValue,
+    formState: { errors, isSubmitting },
   } = useForm({
     mode: 'onBlur',
     shouldUnregister: true,
@@ -31,29 +42,78 @@ function SignupPage() {
       email: '',
       password: '',
       passwordConfirmation: '',
-      role_id: String(CUSTOMER_ROLE_ID),
+      role_id: '',
     },
   })
 
-  const selectedRoleId = watch('role_id')
-  const isStoreSelected = String(selectedRoleId) === String(STORE_ROLE_ID)
+  useEffect(() => {
+    let isActive = true
 
-  const onSubmit = (values) => {
-    // Hassas alanlar (password / passwordConfirmation) bilerek disarida birakiliyor
-    setValidatedSummary({
+    axiosInstance
+      .get('/roles')
+      .then((response) => {
+        if (!isActive) return
+        setRoles(Array.isArray(response.data) ? response.data : [])
+        setRolesError('')
+      })
+      .catch((error) => {
+        if (!isActive) return
+        setRoles([])
+        setRolesError(getApiErrorMessage(error, 'Roller yuklenemedi.'))
+      })
+      .finally(() => {
+        if (isActive) setIsRolesLoading(false)
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  // Varsayilan rol, option'lar DOM'a basildiktan sonra atanmali.
+  // Ayni render icinde atanirsa select ilk option'a (Yonetici) dusuyor.
+  useEffect(() => {
+    if (roles.length > 0) {
+      setValue('role_id', getDefaultRoleId(roles), { shouldValidate: false })
+    }
+  }, [roles, setValue])
+
+  const selectedRoleId = watch('role_id')
+  const isStoreSelected = isStoreRoleId(roles, selectedRoleId)
+
+  const onSubmit = async (values) => {
+    // passwordConfirmation bilerek payload disinda birakiliyor
+    const payload = {
       name: values.name,
       email: values.email,
+      password: values.password,
       role_id: Number(values.role_id),
-      store: values.store
-        ? {
-            name: values.store.name,
-            phone: values.store.phone,
-            tax_no: values.store.tax_no,
-            bank_account: values.store.bank_account,
-          }
-        : null,
-    })
+    }
+
+    if (isStoreSelected) {
+      payload.store = {
+        name: values.store.name,
+        phone: values.store.phone,
+        tax_no: values.store.tax_no,
+        bank_account: values.store.bank_account,
+      }
+    }
+
+    try {
+      await axiosInstance.post('/signup', payload)
+      toast.success(ACTIVATION_MESSAGE)
+
+      if (history.length > 1) {
+        history.goBack()
+      } else {
+        history.replace('/')
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Kayit islemi tamamlanamadi.'))
+    }
   }
+
+  const isRoleSelectDisabled = isRolesLoading || Boolean(rolesError) || roles.length === 0
 
   return (
     <section className="w-full bg-light">
@@ -143,13 +203,20 @@ function SignupPage() {
               />
             </FormField>
 
-            <FormField id="role_id" label="Role" error={errors.role_id?.message}>
+            <FormField
+              id="role_id"
+              label="Role"
+              error={errors.role_id?.message || rolesError}
+              hint={isRolesLoading ? 'Roller yukleniyor...' : undefined}
+            >
               <select
                 id="role_id"
+                disabled={isRoleSelectDisabled}
                 className={inputClass}
                 {...register('role_id', { required: 'Role secimi zorunludur.' })}
               >
-                {MOCK_ROLES.map((role) => (
+                {roles.length === 0 && <option value="">Rol secilemiyor</option>}
+                {roles.map((role) => (
                   <option key={role.id} value={role.id}>
                     {role.name}
                   </option>
@@ -241,36 +308,15 @@ function SignupPage() {
 
             <button
               type="submit"
-              className="w-full rounded bg-primary px-8 py-3 text-sm font-bold text-white"
+              disabled={isSubmitting || isRoleSelectDisabled}
+              className="flex w-full items-center justify-center gap-2 rounded bg-primary px-8 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign Up
+              {isSubmitting && (
+                <LoaderCircle size={18} className="animate-spin" aria-hidden="true" />
+              )}
+              {isSubmitting ? 'Signing up...' : 'Sign Up'}
             </button>
           </form>
-
-          {isSubmitSuccessful && validatedSummary && (
-            <div
-              role="status"
-              data-testid="signup-validation-result"
-              className="flex flex-col gap-2 border border-[#23856D] bg-light px-4 py-4"
-            >
-              <p className="text-sm font-bold text-[#23856D]">
-                Form validation basarili. API cagrisi bir sonraki adimda eklenecek.
-              </p>
-              <ul className="flex flex-col gap-1 text-xs text-muted">
-                <li>name: {validatedSummary.name}</li>
-                <li>email: {validatedSummary.email}</li>
-                <li>role_id: {validatedSummary.role_id}</li>
-                {validatedSummary.store && (
-                  <>
-                    <li>store.name: {validatedSummary.store.name}</li>
-                    <li>store.phone: {validatedSummary.store.phone}</li>
-                    <li>store.tax_no: {validatedSummary.store.tax_no}</li>
-                    <li>store.bank_account: {validatedSummary.store.bank_account}</li>
-                  </>
-                )}
-              </ul>
-            </div>
-          )}
         </div>
       </div>
     </section>
