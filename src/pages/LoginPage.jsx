@@ -1,25 +1,28 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useLocation } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { useHistory, useLocation } from 'react-router-dom'
+import { LoaderCircle } from 'lucide-react'
+import { toast } from 'react-toastify'
 import FormField from '../components/FormField'
+import { getApiErrorMessage } from '../api/axiosInstance'
+import { loginUser } from '../store/actions/clientActions'
 import { EMAIL_PATTERN } from '../utils/validators'
 
 const inputClass =
   'w-full rounded border border-gray-300 bg-white px-4 py-3 text-sm text-dark outline-none focus:border-primary disabled:cursor-not-allowed disabled:bg-gray-100'
 
 function LoginPage() {
+  const dispatch = useDispatch()
+  const history = useHistory()
   const location = useLocation()
 
-  // Login sonrasi donulecek route bilgisi. Yonlendirme T10'un ikinci adiminda yapilacak.
+  // Login sonrasi donulecek route; yoksa Home
   const returnTo = location.state?.from ?? '/'
-
-  // POST /login ikinci adimda eklenecek; simdilik sadece validation sonucu gosteriliyor
-  const [validatedSummary, setValidatedSummary] = useState(null)
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitSuccessful },
+    formState: { errors, isSubmitting },
   } = useForm({
     mode: 'onBlur',
     defaultValues: {
@@ -29,13 +32,21 @@ function LoginPage() {
     },
   })
 
-  const onSubmit = (values) => {
-    // password bilerek disarida birakiliyor
-    setValidatedSummary({
-      email: values.email,
-      rememberMe: values.rememberMe,
-      returnTo,
-    })
+  const onSubmit = async (values) => {
+    try {
+      // Payload yalnizca email + password; rememberMe backend'e gonderilmez
+      await dispatch(
+        loginUser({
+          email: values.email,
+          password: values.password,
+          rememberMe: values.rememberMe,
+        }),
+      )
+
+      history.replace(returnTo)
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Giris yapilamadi. Bilgilerinizi kontrol edin.'))
+    }
   }
 
   return (
@@ -94,28 +105,15 @@ function LoginPage() {
 
             <button
               type="submit"
-              className="w-full rounded bg-primary px-8 py-3 text-sm font-bold text-white"
+              disabled={isSubmitting}
+              className="flex w-full items-center justify-center gap-2 rounded bg-primary px-8 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Login
+              {isSubmitting && (
+                <LoaderCircle size={18} className="animate-spin" aria-hidden="true" />
+              )}
+              {isSubmitting ? 'Logging in...' : 'Login'}
             </button>
           </form>
-
-          {isSubmitSuccessful && validatedSummary && (
-            <div
-              role="status"
-              data-testid="login-validation-result"
-              className="flex flex-col gap-2 border border-[#23856D] bg-light px-4 py-4"
-            >
-              <p className="text-sm font-bold text-[#23856D]">
-                Form validation basarili. API cagrisi bir sonraki adimda eklenecek.
-              </p>
-              <ul className="flex flex-col gap-1 text-xs text-muted">
-                <li>email: {validatedSummary.email}</li>
-                <li>rememberMe: {String(validatedSummary.rememberMe)}</li>
-                <li>returnTo: {validatedSummary.returnTo}</li>
-              </ul>
-            </div>
-          )}
         </div>
       </div>
     </section>

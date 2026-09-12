@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import {
   ChevronDown,
@@ -12,10 +13,14 @@ import {
   X,
 } from 'lucide-react'
 import { Facebook, Instagram, Twitter, Youtube } from '../components/icons/SocialIcons'
+import UserAvatar from '../components/UserAvatar'
 import { NAV_LINKS } from '../data/homeData'
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  const user = useSelector((state) => state.client.user)
+  const isLoggedIn = Boolean(user && user.email)
 
   return (
     <header className="flex w-full flex-col">
@@ -71,18 +76,28 @@ function Header() {
 
           {/* Desktop actions */}
           <div className="hidden items-center gap-3 whitespace-nowrap text-sm font-bold text-primary md:flex lg:gap-4">
-            <span className="flex items-center gap-2">
-              <User size={16} />
-              <span className="hidden lg:inline">
-                <Link to="/login" className="hover:underline">
-                  Login
-                </Link>{' '}
-                /{' '}
-                <Link to="/signup" className="hover:underline">
-                  Register
-                </Link>
+            {isLoggedIn ? (
+              <span
+                className="flex items-center gap-2 text-dark"
+                data-testid="header-user"
+              >
+                <UserAvatar email={user.email} name={user.name} />
+                <span className="hidden lg:inline">{user.name || user.email}</span>
               </span>
-            </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <User size={16} />
+                <span className="hidden lg:inline">
+                  <Link to="/login" className="hover:underline">
+                    Login
+                  </Link>{' '}
+                  /{' '}
+                  <Link to="/signup" className="hover:underline">
+                    Register
+                  </Link>
+                </span>
+              </span>
+            )}
             <button type="button" aria-label="Search">
               <Search size={18} />
             </button>

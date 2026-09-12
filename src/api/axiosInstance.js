@@ -12,6 +12,16 @@ const axiosInstance = axios.create({
   },
 })
 
+// Mevcut session icin Authorization header'ini ayarlar/kaldirir.
+// T11'deki verify/auto-login mantigi bu ticket kapsaminda DEGIL.
+export function setAuthToken(token) {
+  if (token) {
+    axiosInstance.defaults.headers.common.Authorization = token
+  } else {
+    delete axiosInstance.defaults.headers.common.Authorization
+  }
+}
+
 // Kullaniciya gosterilebilecek guvenli hata mesajini uretir.
 // Ham response/request govdesi disariya sizdirilmaz.
 export function getApiErrorMessage(error, fallback = 'Bir hata olustu. Lutfen tekrar deneyin.') {

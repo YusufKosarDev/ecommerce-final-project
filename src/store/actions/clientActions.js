@@ -1,5 +1,7 @@
-import axiosInstance from '../../api/axiosInstance'
+import axiosInstance, { setAuthToken } from '../../api/axiosInstance'
 import { SET_LANGUAGE, SET_ROLES, SET_THEME, SET_USER } from './actionTypes'
+
+export const TOKEN_STORAGE_KEY = 'token'
 
 export const setUser = (user) => ({
   type: SET_USER,
@@ -20,6 +22,30 @@ export const setLanguage = (language) => ({
   type: SET_LANGUAGE,
   payload: language,
 })
+
+// Thunk: POST /login
+// Gercek response shape: { token, name, email, role_id }
+// rememberMe backend'e GONDERILMEZ; sadece token saklama davranisini belirler.
+export const loginUser = ({ email, password, rememberMe }) => async (dispatch) => {
+  const response = await axiosInstance.post('/login', { email, password })
+  const { token, ...user } = response.data ?? {}
+
+  dispatch(setUser(user))
+  setAuthToken(token)
+
+  try {
+    if (rememberMe && token) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, token)
+    } else {
+      // Remember Me secili degilse eski token da temizlenir
+      localStorage.removeItem(TOKEN_STORAGE_KEY)
+    }
+  } catch {
+    // localStorage erisilemiyorsa (private mode vb.) login akisi bozulmasin
+  }
+
+  return user
+}
 
 // Thunk: roles Redux'ta zaten doluysa yeniden istek atmaz.
 // Hata cagiran tarafa iletilir; loading/error gosterimi component'te yonetilir.
