@@ -5,6 +5,7 @@ import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
 import ProductDetailPage from '../pages/ProductDetailPage'
 import ShopPage from '../pages/ShopPage'
+import ShoppingCartPage from '../pages/ShoppingCartPage'
 import SignupPage from '../pages/SignupPage'
 import TeamPage from '../pages/TeamPage'
 
@@ -23,6 +24,9 @@ function PageContent() {
         </Route>
         <Route exact path="/shop/:gender/:categoryName/:categoryId/:productNameSlug/:productId">
           <ProductDetailPage />
+        </Route>
+        <Route exact path="/cart">
+          <ShoppingCartPage />
         </Route>
         <Route exact path="/about">
           <AboutPage />

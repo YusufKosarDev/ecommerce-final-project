@@ -17,6 +17,10 @@ export const SET_FILTER = 'product/SET_FILTER'
 // Shopping cart
 export const SET_CART = 'shoppingCart/SET_CART'
 export const ADD_TO_CART = 'shoppingCart/ADD_TO_CART'
+export const INCREMENT_CART_ITEM = 'shoppingCart/INCREMENT_CART_ITEM'
+export const DECREMENT_CART_ITEM = 'shoppingCart/DECREMENT_CART_ITEM'
+export const REMOVE_CART_ITEM = 'shoppingCart/REMOVE_CART_ITEM'
+export const TOGGLE_CART_ITEM = 'shoppingCart/TOGGLE_CART_ITEM'
 export const SET_PAYMENT = 'shoppingCart/SET_PAYMENT'
 export const SET_ADDRESS = 'shoppingCart/SET_ADDRESS'
 

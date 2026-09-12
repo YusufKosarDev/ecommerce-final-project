@@ -171,7 +171,9 @@ function Header() {
                 <span data-testid="cart-badge">{cartItemCount}</span>
               </button>
 
-              {isCartOpen && <CartDropdown cart={cart} />}
+              {isCartOpen && (
+                <CartDropdown cart={cart} onNavigate={() => setIsCartOpen(false)} />
+              )}
             </span>
             <button type="button" aria-label="Favorites" className="flex items-center gap-1">
               <Heart size={18} />
@@ -184,12 +186,12 @@ function Header() {
             <button type="button" aria-label="Search">
               <Search size={22} />
             </button>
-            <button type="button" aria-label="Cart" className="flex items-center gap-1">
+            <Link to="/cart" aria-label="Cart" className="flex items-center gap-1">
               <ShoppingCart size={22} />
               <span className="text-sm font-bold" data-testid="cart-badge-mobile">
                 {cartItemCount}
               </span>
-            </button>
+            </Link>
             <button
               type="button"
               aria-label="Toggle menu"

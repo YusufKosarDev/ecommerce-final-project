@@ -1,7 +1,8 @@
+import { Link } from 'react-router-dom'
 import { getProductImage, formatPrice } from '../utils/products'
 
-// T18'de quantity / remove / cart page eklenecek; T17'de yalnizca listeleme.
-function CartDropdown({ cart }) {
+// Listeleme + /cart sayfasina gecis. Adet/silme islemleri cart sayfasinda.
+function CartDropdown({ cart, onNavigate }) {
   return (
     <div
       data-testid="cart-dropdown"
@@ -10,9 +11,18 @@ function CartDropdown({ cart }) {
       <p className="text-sm font-bold text-dark">Sepetim</p>
 
       {cart.length === 0 ? (
-        <p data-testid="cart-empty" className="py-4 text-center text-sm text-muted">
-          Sepetiniz bos.
-        </p>
+        <>
+          <p data-testid="cart-empty" className="py-4 text-center text-sm text-muted">
+            Sepetiniz bos.
+          </p>
+          <Link
+            to="/shop"
+            onClick={onNavigate}
+            className="rounded border border-primary px-4 py-2 text-center text-sm font-bold text-primary"
+          >
+            Continue Shopping
+          </Link>
+        </>
       ) : (
         <ul className="flex max-h-80 flex-col gap-3 overflow-y-auto">
           {cart.map((item) => (
@@ -38,6 +48,17 @@ function CartDropdown({ cart }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {cart.length > 0 && (
+        <Link
+          to="/cart"
+          onClick={onNavigate}
+          data-testid="go-to-cart"
+          className="rounded bg-primary px-4 py-2 text-center text-sm font-bold text-white"
+        >
+          Sepete git
+        </Link>
       )}
     </div>
   )
