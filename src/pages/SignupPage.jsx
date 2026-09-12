@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 import { LoaderCircle } from 'lucide-react'
 import { toast } from 'react-toastify'
 import FormField from '../components/FormField'
 import axiosInstance, { getApiErrorMessage } from '../api/axiosInstance'
+import { fetchRoles } from '../store/actions/clientActions'
 import { getDefaultRoleId, isStoreRoleId } from '../utils/roles'
 import {
   EMAIL_PATTERN,
@@ -22,9 +24,12 @@ const ACTIVATION_MESSAGE =
 
 function SignupPage() {
   const history = useHistory()
+  const dispatch = useDispatch()
 
-  const [roles, setRoles] = useState([])
-  const [isRolesLoading, setIsRolesLoading] = useState(true)
+  // Roller artik Redux client state'inden okunuyor
+  const roles = useSelector((state) => state.client.roles)
+
+  const [isRolesLoading, setIsRolesLoading] = useState(roles.length === 0)
   const [rolesError, setRolesError] = useState('')
 
   const {
@@ -46,20 +51,16 @@ function SignupPage() {
     },
   })
 
+  // Roles thunk: Redux'ta roller doluysa yeniden istek atmaz
   useEffect(() => {
     let isActive = true
 
-    axiosInstance
-      .get('/roles')
-      .then((response) => {
-        if (!isActive) return
-        setRoles(Array.isArray(response.data) ? response.data : [])
-        setRolesError('')
+    dispatch(fetchRoles())
+      .then(() => {
+        if (isActive) setRolesError('')
       })
       .catch((error) => {
-        if (!isActive) return
-        setRoles([])
-        setRolesError(getApiErrorMessage(error, 'Roller yuklenemedi.'))
+        if (isActive) setRolesError(getApiErrorMessage(error, 'Roller yuklenemedi.'))
       })
       .finally(() => {
         if (isActive) setIsRolesLoading(false)
@@ -68,7 +69,7 @@ function SignupPage() {
     return () => {
       isActive = false
     }
-  }, [])
+  }, [dispatch])
 
   // Varsayilan rol, option'lar DOM'a basildiktan sonra atanmali.
   // Ayni render icinde atanirsa select ilk option'a (Yonetici) dusuyor.
