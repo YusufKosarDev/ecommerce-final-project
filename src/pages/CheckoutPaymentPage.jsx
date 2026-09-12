@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link, Redirect } from 'react-router-dom'
+import { Link, Redirect, useHistory } from 'react-router-dom'
 import { ChevronLeft, CreditCard, LoaderCircle, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import FormField from '../components/FormField'
@@ -12,7 +12,9 @@ import {
   fetchCreditCards,
   updateCreditCard,
 } from '../store/actions/clientActions'
-import { setPayment } from '../store/actions/shoppingCartActions'
+import { createOrder, setAddress, setCart, setPayment } from '../store/actions/shoppingCartActions'
+import { calculateOrderSummary } from '../utils/order'
+import { formatPrice } from '../utils/products'
 import {
   formatCardNumber,
   formatExpiry,
@@ -39,7 +41,9 @@ const INSTALLMENT_OPTIONS = [
 
 function CheckoutPaymentPage() {
   const dispatch = useDispatch()
+  const history = useHistory()
   const creditCards = useSelector((state) => state.client.creditCards)
+  const cart = useSelector((state) => state.shoppingCart.cart)
   const selectedAddress = useSelector((state) => state.shoppingCart.address)
   const selectedPayment = useSelector((state) => state.shoppingCart.payment)
 
@@ -49,6 +53,11 @@ function CheckoutPaymentPage() {
   const [editingId, setEditingId] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [installment, setInstallment] = useState('single')
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false)
+
+  // Siparis sonrasi adres/kart secimi temizlenirken asagidaki Redirect'in
+  // devreye girip kullaniciyi Step 1'e atmasini engeller.
+  const orderCompletedRef = useRef(false)
 
   const {
     register,
@@ -58,6 +67,16 @@ function CheckoutPaymentPage() {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm({ mode: 'onBlur', defaultValues: EMPTY_FORM })
+
+  // CVV kart formundan ayri, yalnizca siparis submit'i icin tutulur.
+  // Redux'a, localStorage'a veya kart CRUD API'sine gitmez.
+  const {
+    register: registerOrder,
+    handleSubmit: handleOrderSubmit,
+    reset: resetOrder,
+    watch: watchOrder,
+    formState: { errors: orderErrors },
+  } = useForm({ mode: 'onBlur', defaultValues: { card_ccv: '' } })
 
   const hasAddress = Boolean(selectedAddress?.id)
 
@@ -90,7 +109,7 @@ function CheckoutPaymentPage() {
   }, [creditCards, selectedPayment, dispatch])
 
   // Adres secilmeden bu adima gelinemez; checkout sirasi korunur.
-  if (!hasAddress) return <Redirect to="/checkout/address" />
+  if (!hasAddress && !orderCompletedRef.current) return <Redirect to="/checkout/address" />
 
   const openCreateForm = () => {
     setEditingId(null)
@@ -153,6 +172,57 @@ function CheckoutPaymentPage() {
   const hasSelection = Boolean(selectedPayment?.id)
   const watchedMonth = watch('expire_month')
   const watchedYear = watch('expire_year')
+
+  // Siparise yalnizca sepette isaretli (checked) urunler girer.
+  const checkedItems = cart.filter((item) => item?.checked)
+  const { grandTotal } = calculateOrderSummary(cart)
+  const isCvvValid = /^\d{3,4}$/.test(String(watchOrder('card_ccv') ?? '').trim())
+  const canPlaceOrder = hasSelection && checkedItems.length > 0 && isCvvValid && !isPlacingOrder
+
+  const onPlaceOrder = async (values) => {
+    // Cift gonderim korumasi
+    if (isPlacingOrder) return
+    if (!selectedAddress?.id || !selectedPayment?.id || checkedItems.length === 0) return
+
+    // ONEMLI: kart API'si name_on_card kullanir, /order payload'i card_name bekler.
+    const payload = {
+      address_id: selectedAddress.id,
+      order_date: new Date().toISOString(),
+      card_no: normalizeCardNumber(selectedPayment.card_no),
+      card_name: String(selectedPayment.name_on_card ?? '').trim(),
+      card_expire_month: Number(selectedPayment.expire_month),
+      card_expire_year: Number(selectedPayment.expire_year),
+      card_ccv: Number(values.card_ccv),
+      price: Number(grandTotal.toFixed(2)),
+      products: checkedItems.map((item) => ({
+        product_id: item.product.id,
+        count: item.count,
+        detail: item.product?.name ?? '',
+      })),
+    }
+
+    setIsPlacingOrder(true)
+    try {
+      await dispatch(createOrder(payload))
+
+      // CVV'yi ilk is olarak form state'inden temizle.
+      resetOrder({ card_ccv: '' })
+      orderCompletedRef.current = true
+
+      // Checkout state'i sifirlanir: sepet bosalir, adres ve kart secimi kalkar.
+      dispatch(setCart([]))
+      dispatch(setAddress({}))
+      dispatch(setPayment({}))
+
+      toast.success('Siparisiniz olusturuldu.')
+      history.replace('/shop')
+    } catch (error) {
+      // Hata durumunda sepet/adres/kart korunur, kullanici sayfada kalir.
+      toast.error(getApiErrorMessage(error, 'Siparis olusturulamadi. Lutfen tekrar deneyin.'))
+    } finally {
+      setIsPlacingOrder(false)
+    }
+  }
 
   return (
     <section className="w-full bg-white">
@@ -387,47 +457,105 @@ function CheckoutPaymentPage() {
               </form>
             )}
 
-            {/* Taksit secenekleri yalnizca gorsel; backend taksit endpoint'i sunmuyor. */}
-            {hasSelection && (
-              <div className="flex flex-col gap-3" data-testid="installment-options">
-                <p className="text-sm font-bold text-dark">Odeme secenekleri</p>
-                <div className="flex flex-col gap-2 md:flex-row md:gap-6">
-                  {INSTALLMENT_OPTIONS.map((option) => (
-                    <label key={option.value} className="flex items-center gap-2 text-sm text-muted">
-                      <input
-                        type="radio"
-                        name="installment"
-                        value={option.value}
-                        checked={installment === option.value}
-                        onChange={(event) => setInstallment(event.target.value)}
-                        className="h-4 w-4 accent-primary"
-                      />
-                      {option.label}
-                    </label>
-                  ))}
+            <form
+              noValidate
+              data-testid="order-form"
+              onSubmit={handleOrderSubmit(onPlaceOrder)}
+              className="flex flex-col gap-6"
+            >
+              {/* Taksit secenekleri yalnizca gorsel; backend taksit endpoint'i sunmuyor. */}
+              {hasSelection && (
+                <div className="flex flex-col gap-3" data-testid="installment-options">
+                  <p className="text-sm font-bold text-dark">Odeme secenekleri</p>
+                  <div className="flex flex-col gap-2 md:flex-row md:gap-6">
+                    {INSTALLMENT_OPTIONS.map((option) => (
+                      <label
+                        key={option.value}
+                        className="flex items-center gap-2 text-sm text-muted"
+                      >
+                        <input
+                          type="radio"
+                          name="installment"
+                          value={option.value}
+                          checked={installment === option.value}
+                          onChange={(event) => setInstallment(event.target.value)}
+                          className="h-4 w-4 accent-primary"
+                        />
+                        {option.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* CVV yalnizca siparis isteginde kullanilir, hicbir yerde saklanmaz. */}
+              {hasSelection && (
+                <div className="md:max-w-xs">
+                  <FormField id="card_ccv" label="CVV" error={orderErrors.card_ccv?.message}>
+                    <input
+                      id="card_ccv"
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={4}
+                      autoComplete="cc-csc"
+                      data-testid="card-ccv"
+                      className={inputClass}
+                      {...registerOrder('card_ccv', {
+                        required: 'CVV zorunludur.',
+                        pattern: {
+                          value: /^\d{3,4}$/,
+                          message: 'CVV 3 veya 4 haneli olmalidir.',
+                        },
+                      })}
+                    />
+                  </FormField>
+                </div>
+              )}
+
+              {checkedItems.length === 0 && (
+                <p
+                  role="alert"
+                  data-testid="no-checked-items"
+                  className="border border-dashed border-gray-300 bg-light p-4 text-sm font-bold text-muted"
+                >
+                  Sepetinizde secili urun yok.{' '}
+                  <Link to="/cart" className="text-primary underline">
+                    Sepete don
+                  </Link>
+                </p>
+              )}
+
+              <div className="flex flex-col gap-3 border-t border-gray-200 pt-6 md:flex-row md:items-center md:justify-between">
+                <Link
+                  to="/checkout/address"
+                  className="flex items-center justify-center gap-1 rounded border border-primary px-6 py-3 text-sm font-bold text-primary"
+                >
+                  <ChevronLeft size={16} aria-hidden="true" />
+                  Back to Address
+                </Link>
+
+                <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center md:gap-6">
+                  <p className="text-sm font-bold text-dark md:text-right">
+                    Odenecek tutar:{' '}
+                    <span data-testid="order-total" className="text-lg">
+                      {formatPrice(grandTotal)}
+                    </span>
+                  </p>
+
+                  <button
+                    type="submit"
+                    data-testid="complete-order"
+                    disabled={!canPlaceOrder}
+                    className="flex items-center justify-center gap-2 rounded bg-primary px-8 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isPlacingOrder && (
+                      <LoaderCircle size={16} className="animate-spin" aria-hidden="true" />
+                    )}
+                    {isPlacingOrder ? 'Siparis olusturuluyor...' : 'Complete Order'}
+                  </button>
                 </div>
               </div>
-            )}
-
-            <div className="flex flex-col gap-3 border-t border-gray-200 pt-6 md:flex-row md:items-center md:justify-between">
-              <Link
-                to="/checkout/address"
-                className="flex items-center justify-center gap-1 rounded border border-primary px-6 py-3 text-sm font-bold text-primary"
-              >
-                <ChevronLeft size={16} aria-hidden="true" />
-                Back to Address
-              </Link>
-
-              {/* Siparis olusturma T22 kapsaminda; buton simdilik islevsiz. */}
-              <button
-                type="button"
-                data-testid="complete-order"
-                disabled={!hasSelection}
-                className="rounded bg-primary px-8 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Complete Order
-              </button>
-            </div>
+            </form>
           </div>
         )}
       </div>

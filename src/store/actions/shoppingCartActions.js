@@ -1,3 +1,4 @@
+import axiosInstance from '../../api/axiosInstance'
 import {
   ADD_TO_CART,
   DECREMENT_CART_ITEM,
@@ -50,3 +51,17 @@ export const toggleCartItem = (productId) => ({
   type: TOGGLE_CART_ITEM,
   payload: productId,
 })
+
+// ---- Order (T22) ----
+// Gercek POST /order davranisi:
+//   Istek : { address_id, order_date, card_no, card_name, card_expire_month,
+//             card_expire_year, card_ccv, price, products: [{ product_id, count, detail }] }
+//   Yanit : HTTP 201
+//           { id, address_id, order_date, card_no, card_name, card_expire_month,
+//             card_expire_year, price, products: [<olusan satir id'leri>] }
+// NOT: card_ccv yanitta DONMEZ (saklanmiyor); yalnizca istekte gider.
+// NOT: T21 kart API'si name_on_card kullanir, order payload'i card_name bekler.
+export const createOrder = (orderPayload) => async () => {
+  const response = await axiosInstance.post('/order', orderPayload)
+  return response.data
+}
