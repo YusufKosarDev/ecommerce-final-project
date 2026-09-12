@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react'
 import { Facebook, Instagram, Twitter, Youtube } from '../components/icons/SocialIcons'
+import CartDropdown from '../components/CartDropdown'
 import UserAvatar from '../components/UserAvatar'
 import { buildCategoryPath, groupCategoriesByGender } from '../utils/categories'
 import { NAV_LINKS } from '../data/homeData'
@@ -20,8 +21,13 @@ import { NAV_LINKS } from '../data/homeData'
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
+  const [isCartOpen, setIsCartOpen] = useState(false)
 
   const categories = useSelector((state) => state.product.categories)
+  const cart = useSelector((state) => state.shoppingCart.cart)
+
+  // Badge: item sayisi degil, count degerlerinin toplami
+  const cartItemCount = cart.reduce((sum, item) => sum + (Number(item.count) || 0), 0)
 
   const user = useSelector((state) => state.client.user)
   const isLoggedIn = Boolean(user && user.email)
@@ -153,10 +159,20 @@ function Header() {
             <button type="button" aria-label="Search">
               <Search size={18} />
             </button>
-            <button type="button" aria-label="Cart" className="flex items-center gap-1">
-              <ShoppingCart size={18} />
-              <span>1</span>
-            </button>
+            <span className="relative flex items-center">
+              <button
+                type="button"
+                aria-label="Cart"
+                aria-expanded={isCartOpen}
+                onClick={() => setIsCartOpen((open) => !open)}
+                className="flex items-center gap-1"
+              >
+                <ShoppingCart size={18} />
+                <span data-testid="cart-badge">{cartItemCount}</span>
+              </button>
+
+              {isCartOpen && <CartDropdown cart={cart} />}
+            </span>
             <button type="button" aria-label="Favorites" className="flex items-center gap-1">
               <Heart size={18} />
               <span>1</span>
@@ -168,8 +184,11 @@ function Header() {
             <button type="button" aria-label="Search">
               <Search size={22} />
             </button>
-            <button type="button" aria-label="Cart">
+            <button type="button" aria-label="Cart" className="flex items-center gap-1">
               <ShoppingCart size={22} />
+              <span className="text-sm font-bold" data-testid="cart-badge-mobile">
+                {cartItemCount}
+              </span>
             </button>
             <button
               type="button"

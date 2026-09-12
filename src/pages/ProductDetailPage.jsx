@@ -10,7 +10,9 @@ import {
   Star,
 } from 'lucide-react'
 import { Link, useHistory, useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import { fetchProduct } from '../store/actions/productActions'
+import { addProductToCart } from '../store/actions/shoppingCartActions'
 import { findCategoryById, formatPrice } from '../utils/products'
 
 const TABS = ['Description', 'Additional Information', 'Reviews (0)']
@@ -49,6 +51,13 @@ function ProductDetailPage() {
       isActive = false
     }
   }, [dispatch, productId])
+
+  // Sepete ekleme: API cagrisi yok, yalnizca Redux.
+  const handleAddToCart = () => {
+    if (!product?.id) return
+    dispatch(addProductToCart(product))
+    toast.success(`${product.name} sepete eklendi.`)
+  }
 
   const goBack = () => {
     if (history.length > 1) history.goBack()
@@ -230,13 +239,16 @@ function ProductDetailPage() {
 
                 <hr className="border-gray-200" />
 
-                {/* T17'de islevsellik kazanacak; simdilik yalnizca gorsel */}
+                {/* Add to Cart islevsel; favori ve quick view T17 kapsaminda degil */}
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     type="button"
-                    className="bg-primary px-6 py-3 text-sm font-bold text-white"
+                    data-testid="add-to-cart"
+                    onClick={handleAddToCart}
+                    className="flex items-center gap-2 bg-primary px-6 py-3 text-sm font-bold text-white"
                   >
-                    Select Options
+                    <ShoppingCart size={16} aria-hidden="true" />
+                    Add to Cart
                   </button>
                   <button
                     type="button"
@@ -244,13 +256,6 @@ function ProductDetailPage() {
                     className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-dark"
                   >
                     <Heart size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Add to cart"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-dark"
-                  >
-                    <ShoppingCart size={16} />
                   </button>
                   <button
                     type="button"
