@@ -4,15 +4,18 @@ import { ChevronRight, LayoutGrid, List, LoaderCircle } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import ShopCategoryCard from '../components/ShopCategoryCard'
-import { SHOP_PRODUCTS, SORT_OPTIONS } from '../data/shopData'
+import { SORT_OPTIONS } from '../data/shopData'
 import { getApiErrorMessage } from '../api/axiosInstance'
-import { fetchCategories } from '../store/actions/productActions'
+import { fetchCategories, fetchProducts } from '../store/actions/productActions'
 import { buildCategoryPath, getGenderLabel, getTopCategories } from '../utils/categories'
-import { buildProductPath } from '../utils/slugify'
+import { toProductCardProps } from '../utils/products'
 
 function ShopPage() {
   const dispatch = useDispatch()
   const categories = useSelector((state) => state.product.categories)
+  const productList = useSelector((state) => state.product.productList)
+  const total = useSelector((state) => state.product.total)
+  const fetchState = useSelector((state) => state.product.fetchState)
 
   // T14'te products?category=... icin kullanilacak; simdilik sadece okunuyor
   const { categoryId } = useParams()
@@ -37,6 +40,17 @@ function ShopPage() {
     return () => {
       isActive = false
     }
+  }, [dispatch])
+
+  // Urunler: T13 kapsaminda query parameter YOK, duz GET /products
+  // Zaten yuklenmisse tekrar istek atilmaz.
+  useEffect(() => {
+    if (fetchState === 'FETCHED' && productList.length > 0) return
+    dispatch(fetchProducts()).catch(() => {
+      // Hata durumu fetchState === 'FAILED' uzerinden gosteriliyor
+    })
+    // fetchState/productList bilerek bagimlilik disinda: sadece mount'ta calisir
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch])
 
   // Rating'e gore en yuksek 5 kategori (Redux state'i degistirmeden)
@@ -114,8 +128,8 @@ function ShopPage() {
       {/* Results + view + sort + filter */}
       <section className="w-full bg-white">
         <div className="mx-auto flex w-full max-w-screen-xl flex-col items-center gap-4 px-4 py-6 md:flex-row md:justify-between">
-          <p className="text-sm font-bold text-muted">
-            Showing all {SHOP_PRODUCTS.length} results
+          <p className="text-sm font-bold text-muted" data-testid="results-count">
+            Showing all {total} results
           </p>
 
           <div className="flex items-center gap-3">
@@ -160,15 +174,46 @@ function ShopPage() {
       </section>
 
       {/* Product grid */}
-      <section className="w-full bg-white">
+      <section className="w-full bg-white" data-testid="product-grid">
         <div className="mx-auto w-full max-w-screen-xl px-4 pb-12 md:pb-20">
-          <div className="-mx-3 flex flex-wrap">
-            {SHOP_PRODUCTS.map((product) => (
-              <div key={product.id} className="w-full px-3 pb-8 md:w-1/2 lg:w-1/4">
-                <ProductCard {...product} to={buildProductPath(product)} />
-              </div>
-            ))}
-          </div>
+          {fetchState === 'FETCHING' && (
+            <div
+              data-testid="products-loading"
+              className="flex w-full items-center justify-center gap-2 py-16 text-sm font-bold text-muted"
+            >
+              <LoaderCircle size={20} className="animate-spin" aria-hidden="true" />
+              Urunler yukleniyor...
+            </div>
+          )}
+
+          {fetchState === 'FAILED' && (
+            <p
+              role="alert"
+              data-testid="products-error"
+              className="w-full py-16 text-center text-sm font-bold text-danger"
+            >
+              Urunler yuklenemedi. Lutfen daha sonra tekrar deneyin.
+            </p>
+          )}
+
+          {fetchState === 'FETCHED' && productList.length === 0 && (
+            <p
+              data-testid="products-empty"
+              className="w-full py-16 text-center text-sm font-bold text-muted"
+            >
+              Gosterilecek urun bulunamadi.
+            </p>
+          )}
+
+          {fetchState === 'FETCHED' && productList.length > 0 && (
+            <div className="-mx-3 flex flex-wrap">
+              {productList.map((product) => (
+                <div key={product.id} className="w-full px-3 pb-8 md:w-1/2 lg:w-1/4">
+                  <ProductCard {...toProductCardProps(product, categories)} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </>

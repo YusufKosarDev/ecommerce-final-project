@@ -1,5 +1,6 @@
 import axiosInstance from '../../api/axiosInstance'
 import {
+  FETCH_STATES,
   SET_CATEGORIES,
   SET_FETCH_STATE,
   SET_FILTER,
@@ -73,4 +74,25 @@ export const fetchCategories = () => (dispatch, getState) => {
     })
 
   return categoriesRequest
+}
+
+// Thunk: GET /products (T13 - query parameter YOK)
+// fetchState akisi: FETCHING -> FETCHED | FAILED
+// Hata cagirana iletilir ki component gerekirse detay gosterebilsin.
+export const fetchProducts = () => async (dispatch) => {
+  dispatch(setFetchState(FETCH_STATES.FETCHING))
+
+  try {
+    const response = await axiosInstance.get('/products')
+    const data = response.data ?? {}
+
+    dispatch(setProductList(Array.isArray(data.products) ? data.products : []))
+    dispatch(setTotal(Number(data.total) || 0))
+    dispatch(setFetchState(FETCH_STATES.FETCHED))
+
+    return data
+  } catch (error) {
+    dispatch(setFetchState(FETCH_STATES.FAILED))
+    throw error
+  }
 }

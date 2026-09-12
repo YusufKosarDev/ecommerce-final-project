@@ -12,15 +12,17 @@ function ProductCard({ image, title, department, oldPrice, newPrice, colors = []
         <p className="text-sm font-bold text-muted">{department}</p>
 
         <div className="flex items-center gap-2 text-base font-bold">
-          <span className="text-gray-400">{oldPrice}</span>
+          {oldPrice && <span className="text-gray-400">{oldPrice}</span>}
           <span className="text-[#23856D]">{newPrice}</span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {colors.map((color) => (
-            <span key={color} className={`h-4 w-4 rounded-full ${color}`} />
-          ))}
-        </div>
+        {colors.length > 0 && (
+          <div className="flex items-center gap-2">
+            {colors.map((color) => (
+              <span key={color} className={`h-4 w-4 rounded-full ${color}`} />
+            ))}
+          </div>
+        )}
       </div>
     </>
   )
