@@ -1,4 +1,4 @@
-import { Route, Switch } from 'react-router-dom'
+import { Link, Route, Switch } from 'react-router-dom'
 import AboutPage from '../pages/AboutPage'
 import ProtectedRoute from '../components/ProtectedRoute'
 import CheckoutAddressPage from '../pages/CheckoutAddressPage'
@@ -55,6 +55,26 @@ function PageContent() {
         </Route>
         <Route exact path="/team">
           <TeamPage />
+        </Route>
+
+        {/* Eslesmeyen adresler (menudeki Blog/Pages dahil) bos sayfa yerine
+            bilgilendirici bir icerik gorur. */}
+        <Route>
+          <section className="w-full bg-white">
+            <div className="mx-auto flex w-full max-w-screen-xl flex-col items-center gap-4 px-4 py-20 text-center">
+              <p className="text-sm font-bold text-primary">404</p>
+              <h1 className="text-2xl font-bold text-dark md:text-3xl">Sayfa bulunamadi</h1>
+              <p className="text-sm text-muted">
+                Aradiginiz sayfa yayinda degil ya da adres hatali olabilir.
+              </p>
+              <Link
+                to="/shop"
+                className="rounded bg-primary px-8 py-3 text-sm font-bold text-white"
+              >
+                Alisverise devam et
+              </Link>
+            </div>
+          </section>
         </Route>
       </Switch>
     </main>
