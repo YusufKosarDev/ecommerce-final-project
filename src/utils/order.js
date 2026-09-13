@@ -44,3 +44,29 @@ export function calculateOrderSummary(cart) {
     hasDiscount,
   }
 }
+
+// Backend order_date'i iki formatta donebiliyor:
+//   "2026-09-13T12:00:00.000Z" (ISO) ve "2026-09-10 08:30:00" (SQL datetime).
+// Cozulemeyen deger crash yerine ham metin olarak gosterilir.
+export function formatOrderDate(value) {
+  if (!value) return '-'
+
+  const normalized = typeof value === 'string' ? value.replace(' ', 'T') : value
+  const date = new Date(normalized)
+  if (Number.isNaN(date.getTime())) return String(value)
+
+  try {
+    return new Intl.DateTimeFormat('tr-TR', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(date)
+  } catch {
+    return date.toISOString()
+  }
+}
+
+// Siparisteki toplam parca adedi (satir sayisi degil, count toplami)
+export function getOrderItemCount(order) {
+  const products = Array.isArray(order?.products) ? order.products : []
+  return products.reduce((sum, item) => sum + (Number(item?.count) || 0), 0)
+}

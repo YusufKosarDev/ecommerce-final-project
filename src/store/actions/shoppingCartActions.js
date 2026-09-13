@@ -65,3 +65,15 @@ export const createOrder = (orderPayload) => async () => {
   const response = await axiosInstance.post('/order', orderPayload)
   return response.data
 }
+
+// GET /order — login olmus kullanicinin gecmis siparisleri (T23).
+// Gercek yanit (dogrulandi): ust seviye ARRAY
+//   [{ id, user_id, address_id, order_date, card_no (number), card_name,
+//      card_expire_month, card_expire_year, price (number),
+//      products: [{ id, name, description, price, count, images: [{ url, index }] }] }]
+// NOT: address objesi DONMEZ, yalnizca address_id gelir.
+// NOT: card_ccv ve gonderilen product "detail" alani yanitta yer almaz.
+export const fetchOrders = () => async () => {
+  const response = await axiosInstance.get('/order')
+  return Array.isArray(response.data) ? response.data : []
+}

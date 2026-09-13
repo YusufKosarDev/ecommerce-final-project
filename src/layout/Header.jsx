@@ -22,6 +22,7 @@ function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   const categories = useSelector((state) => state.product.categories)
   const cart = useSelector((state) => state.shoppingCart.cart)
@@ -135,12 +136,35 @@ function Header() {
           {/* Desktop actions */}
           <div className="hidden items-center gap-3 whitespace-nowrap text-sm font-bold text-primary md:flex lg:gap-4">
             {isLoggedIn ? (
-              <span
-                className="flex items-center gap-2 text-dark"
-                data-testid="header-user"
-              >
-                <UserAvatar email={user.email} name={user.name} />
-                <span className="hidden lg:inline">{user.name || user.email}</span>
+              <span className="relative flex items-center">
+                <button
+                  type="button"
+                  data-testid="header-user"
+                  aria-label="Kullanici menusu"
+                  aria-expanded={isUserMenuOpen}
+                  onClick={() => setIsUserMenuOpen((open) => !open)}
+                  className="flex items-center gap-2 text-dark"
+                >
+                  <UserAvatar email={user.email} name={user.name} />
+                  <span className="hidden lg:inline">{user.name || user.email}</span>
+                  <ChevronDown size={14} aria-hidden="true" />
+                </button>
+
+                {isUserMenuOpen && (
+                  <div
+                    data-testid="user-dropdown"
+                    className="absolute right-0 top-full z-20 mt-3 flex w-48 flex-col border border-gray-200 bg-white py-2 shadow-md"
+                  >
+                    <Link
+                      to="/orders"
+                      data-testid="user-orders-link"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="px-4 py-2 text-left text-sm font-bold text-dark transition-colors hover:bg-light"
+                    >
+                      Siparislerim
+                    </Link>
+                  </div>
+                )}
               </span>
             ) : (
               <span className="flex items-center gap-2">
@@ -214,6 +238,17 @@ function Header() {
                   </Link>
                 </li>
               ))}
+              {isLoggedIn && (
+                <li>
+                  <Link
+                    to="/orders"
+                    data-testid="mobile-orders-link"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Siparislerim
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
         )}

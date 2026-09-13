@@ -6,6 +6,7 @@ import CheckoutPaymentPage from '../pages/CheckoutPaymentPage'
 import ContactPage from '../pages/ContactPage'
 import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
+import PreviousOrdersPage from '../pages/PreviousOrdersPage'
 import ProductDetailPage from '../pages/ProductDetailPage'
 import ShopPage from '../pages/ShopPage'
 import ShoppingCartPage from '../pages/ShoppingCartPage'
@@ -33,6 +34,9 @@ function PageContent() {
         </ProtectedRoute>
         <ProtectedRoute exact path="/checkout/payment">
           <CheckoutPaymentPage />
+        </ProtectedRoute>
+        <ProtectedRoute exact path="/orders">
+          <PreviousOrdersPage />
         </ProtectedRoute>
         <Route exact path="/cart">
           <ShoppingCartPage />
