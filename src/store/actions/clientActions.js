@@ -112,7 +112,7 @@ export const setAddressList = (addressList) => ({
   payload: addressList,
 })
 
-// ---- Address CRUD (T20) ----
+// ---- Address CRUD ----
 // Backend shape'leri:
 //   GET    /user/address        -> [{ id, user_id, title, name, surname, phone,
 //                                     city, district, neighborhood, address }]
@@ -149,7 +149,7 @@ export const setCreditCards = (creditCards) => ({
   payload: creditCards,
 })
 
-// ---- Credit card CRUD (T21) ----
+// ---- Credit card CRUD ----
 // Backend shape'leri:
 //   GET    /user/card       -> [{ id, user_id, card_no, expire_month, expire_year, name_on_card }]
 //   POST   /user/card       -> { "0": {olusturulan kart} }

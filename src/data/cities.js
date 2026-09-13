@@ -1,5 +1,4 @@
-// Statik Turkiye il listesi. Backend sehir endpoint'i sunmuyor;
-// T20 kapsamini asmamak icin harici API eklenmedi.
+// Statik Turkiye il listesi. Backend bir sehir endpoint'i sunmadigi icin sabit tutulur.
 export const TURKISH_CITIES = [
   'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Aksaray', 'Amasya', 'Ankara',
   'Antalya', 'Ardahan', 'Artvin', 'Aydın', 'Balıkesir', 'Bartın', 'Batman',

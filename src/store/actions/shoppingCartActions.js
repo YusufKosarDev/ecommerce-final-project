@@ -31,7 +31,7 @@ export const setAddress = (address) => ({
   payload: address,
 })
 
-// Cart satir islemleri (T18). Hepsi productId ile calisir.
+// Cart satir islemleri. Hepsi productId ile calisir.
 export const incrementCartItem = (productId) => ({
   type: INCREMENT_CART_ITEM,
   payload: productId,
@@ -52,7 +52,7 @@ export const toggleCartItem = (productId) => ({
   payload: productId,
 })
 
-// ---- Order (T22) ----
+// ---- Order ----
 // Gercek POST /order davranisi:
 //   Istek : { address_id, order_date, card_no, card_name, card_expire_month,
 //             card_expire_year, card_ccv, price, products: [{ product_id, count, detail }] }
@@ -60,13 +60,13 @@ export const toggleCartItem = (productId) => ({
 //           { id, address_id, order_date, card_no, card_name, card_expire_month,
 //             card_expire_year, price, products: [<olusan satir id'leri>] }
 // NOT: card_ccv yanitta DONMEZ (saklanmiyor); yalnizca istekte gider.
-// NOT: T21 kart API'si name_on_card kullanir, order payload'i card_name bekler.
+// NOT: Kart API'si name_on_card kullanir, order payload'i card_name bekler.
 export const createOrder = (orderPayload) => async () => {
   const response = await axiosInstance.post('/order', orderPayload)
   return response.data
 }
 
-// GET /order — login olmus kullanicinin gecmis siparisleri (T23).
+// GET /order — login olmus kullanicinin gecmis siparisleri.
 // Gercek yanit (dogrulandi): ust seviye ARRAY
 //   [{ id, user_id, address_id, order_date, card_no (number), card_name,
 //      card_expire_month, card_expire_year, price (number),

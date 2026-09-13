@@ -20,7 +20,7 @@ function ShopPage() {
   const limit = useSelector((state) => state.product.limit)
   const offset = useSelector((state) => state.product.offset)
 
-  // Filter Redux'ta (T09 reducer alani), sort ise sadece bu sayfaya ait -> local state
+  // Filter Redux'ta tutulur, sort ise sadece bu sayfaya ait -> local state
   const filter = useSelector((state) => state.product.filter)
 
   const { categoryId } = useParams()
@@ -106,7 +106,7 @@ function ShopPage() {
   // Rating'e gore en yuksek 5 kategori (Redux state'i degistirmeden)
   const topCategories = getTopCategories(categories, 5)
 
-  // Route'tan gelen kategori. T14'te urun filtrelemesi icin kullanilacak.
+  // Route'tan gelen kategori; urun filtrelemesi icin kullanilir.
   const selectedCategory = categoryId
     ? categories.find((category) => String(category.id) === String(categoryId))
     : undefined

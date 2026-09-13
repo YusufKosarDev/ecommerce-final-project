@@ -239,7 +239,6 @@ function ProductDetailPage() {
 
                 <hr className="border-gray-200" />
 
-                {/* Add to Cart islevsel; favori ve quick view T17 kapsaminda degil */}
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     type="button"

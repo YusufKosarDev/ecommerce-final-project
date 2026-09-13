@@ -13,9 +13,9 @@ function hasStoredToken() {
 
 // React Router v5 icin minimum korumali route.
 // Login degilse /login'e yonlendirir; location.state.from sayesinde
-// kullanici giris sonrasi ayni sayfaya geri doner (T10 redirect akisi).
+// kullanici giris sonrasi ayni sayfaya geri doner.
 //
-// ONEMLI: Sayfa yenilendiginde T11 auto-login (GET /verify) asenkron calisir ve
+// ONEMLI: Sayfa yenilendiginde auto-login (GET /verify) asenkron calisir ve
 // ilk render'da client.user henuz bostur. localStorage'da token varsa dogrulama
 // bitene kadar bekleriz; aksi halde gecerli oturum haksiz yere /login'e atilirdi.
 // Verify basarisiz olursa token temizlenir ve bir sonraki render'da redirect calisir.

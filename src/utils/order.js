@@ -1,5 +1,5 @@
 // Siparis ozeti hesaplari TEK yerde tutulur.
-// T19 kapsaminda shipping/discount API'den gelmiyor; asagidaki demo kurallar kullaniliyor.
+// Shipping ve discount degerleri API'den gelmiyor; asagidaki kurallar uygulanir.
 
 export const SHIPPING_FEE = 29.99
 export const FREE_SHIPPING_THRESHOLD = 150

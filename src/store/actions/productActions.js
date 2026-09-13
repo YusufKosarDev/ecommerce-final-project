@@ -109,7 +109,7 @@ export function buildProductQueryParams({ category, filter, sort, limit, offset 
   return params
 }
 
-// Thunk: GET /products (T14 - category / filter / sort query parametreleri)
+// Thunk: GET /products (category / filter / sort query parametreleri)
 // fetchState akisi: FETCHING -> FETCHED | FAILED
 // Hata cagirana iletilir ki component gerekirse detay gosterebilsin.
 export const fetchProducts = (options = {}) => async (dispatch) => {

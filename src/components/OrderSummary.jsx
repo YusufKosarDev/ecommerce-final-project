@@ -73,7 +73,6 @@ function OrderSummary({ cart }) {
 
       <SummaryRow label="Grand Total" value={grandTotal} testId="summary-grand-total" emphasis />
 
-      {/* Checkout adim 1: adres. Odeme adimi T21 kapsaminda. */}
       <button
         type="button"
         data-testid="create-order"
